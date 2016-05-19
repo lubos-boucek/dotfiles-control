@@ -1,0 +1,13 @@
+DEPENDENCIES=curl
+
+check_pathogen() {
+	[ -d ~/.vim/autoload ]
+}
+
+install_pathogen() {
+	mkdir -p ~/.vim/autoload ~/.vim/bundle && curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim	
+}
+
+uninstall_pathogen() {
+	rm -rf ~/.vim/autoload ~/.vim/bundle
+}
