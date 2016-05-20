@@ -1,3 +1,0 @@
-check_curl() {
-	check curl
-}

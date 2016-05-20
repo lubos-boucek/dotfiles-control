@@ -1,8 +1,10 @@
 #!/usr/bin/env sh
-# TODO: conf/ wouldn't work with subdirs now
 # TODO: check for non-existent targets earlier
 # TODO: circular dependency
 # TODO: find duplicate basenames
+# TODO: check check_ names might be confusing
+# TODO: install and uninstall share too much code, merge it
+# TODO: that grepping is ugly
 errx() {
 	echo "$PROGNAME: $@" >&2
 	exit 1
@@ -16,9 +18,9 @@ warnx() {
 find_conf() {
 	[ $# -ne 1 ] && errx "incorrect usage of find_conf"
 
-	for F in $CONFS; do
-		if [ "$(basename "$F")" = "$1" ]; then
-			echo "$F"
+	for CONF in $CONFS; do
+		if [ "$(basename "$CONF")" = "$1" ]; then
+			echo "$CONF"
 			return 0
 		fi
 	done
@@ -35,7 +37,7 @@ check() {
 
 install() {
 	[ $# -ne 1 ] && errx "incorrect usage of install"
-	echo "preparing to install $1..."
+	echo "resolving $1..."
 	
 	if check check_$1; then
 		if check_$1; then
@@ -43,16 +45,22 @@ install() {
 			return 0
 		fi
 	else
-		# TODO: decide: is it OK to continue?
-		warnx "could not check if $1 is already installed!"
-		warnx "continuing anyway!"
+		[ $DFM_DEBUG -gt 0 ] && echo "# assuming $1 is a command"
+		if check $1; then
+			echo "$1 is a command"
+			return 0
+		else
+			errx "unknown command $1"
+		fi
 	fi
+
+	echo "preparing to install $1..."
 	
 	# TODO: decide: kill it?
 	CONF="$(find_conf "$1")" || { warnx "target invalid!"; return 1; }
 	DEPS="$(grep '^DEPENDENCIES=' "$CONF" | tail -n 1 | cut -d'=' -f'2' | tr ',' ' ')"
 	for DEP in $DEPS; do
-		[ $DEBUG -gt 0 ] && echo "# dependency $DEP found"
+		[ $DFM_DEBUG -gt 0 ] && echo "# dependency $DEP found"
 		install "$DEP"
 	done
 
@@ -60,7 +68,6 @@ install() {
 		echo "installing $1..."
 		install_$1
 	else
-		# TODO: again, decide...
 		warnx "could not install $1!"
 		warnx "continuing anyway!"
 	fi
@@ -68,7 +75,7 @@ install() {
 
 uninstall() {
 	[ $# -ne 1 ] && errx "incorrect usage of uninstall"
-	echo "preparing to uninstall $1..."
+	echo "resolving $1..."
 	
 	if check check_$1; then
 		if ! check_$1; then
@@ -76,12 +83,18 @@ uninstall() {
 			return 0
 		fi
 	else
-		# TODO: decide: is it OK to continue?
-		warnx "could not check if $1 is already installed!"
-		warnx "continuing anyway!"
+		[ $DFM_DEBUG -gt 0 ] && echo "# assuming $1 is a command"
+		if check $1; then
+			echo "$1 is a command"
+			return 0
+		else
+			errx "unknown command $1"
+		fi
 	fi
+
+	echo "preparing to uninstall $1..."
 	
-	[ $DEBUG -gt 0 ] && echo "# checking dependencies on $1..."
+	[ $DFM_DEBUG -gt 0 ] && echo "# checking dependencies on $1..."
     for CONF in $CONFS; do
 		DEPS=$(grep '^DEPENDENCIES=' $CONF | tail -n 1 | cut -d'=' -f'2' | tr ',' ' ')
 		for DEP in $DEPS; do

@@ -1,5 +1,3 @@
-# TODO: generic root dir instead of ~
-
 DEPENDENCIES=pathogen,git
 
 check_solarized() {
