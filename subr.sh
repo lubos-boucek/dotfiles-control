@@ -2,7 +2,7 @@
 # TODO: check for non-existent targets earlier
 # TODO: circular dependency
 # TODO: find duplicate basenames
-# TODO: check check_ names might be confusing
+# TODO: check vs check_ names might be confusing
 # TODO: install and uninstall share too much code, merge it
 # TODO: that grepping is ugly
 errx() {
